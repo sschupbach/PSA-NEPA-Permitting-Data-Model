@@ -353,6 +353,95 @@
         <trackHistory>false</trackHistory>
         <type>DateTime</type>
     </fields>
+    <!-- CE Screening fields (Priority 2: Automated CE Screening) -->
+    <fields>
+        <fullName>nepa_action_type__c</fullName>
+        <description>Primary action verb describing what the applicant proposes to do. Primary discriminator for Tier 2 CE code selection when sector+type is ambiguous.</description>
+        <inlineHelpText>What is the primary nature of the proposed action?</inlineHelpText>
+        <label>Action Type</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Picklist</type>
+        <valueSet>
+            <restricted>true</restricted>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value><fullName>Construct New</fullName><default>false</default><label>Construct New</label></value>
+                <value><fullName>Modify Existing</fullName><default>false</default><label>Modify Existing</label></value>
+                <value><fullName>Renew or Extend Existing</fullName><default>false</default><label>Renew or Extend Existing</label></value>
+                <value><fullName>Abandon or Decommission</fullName><default>false</default><label>Abandon or Decommission</label></value>
+                <value><fullName>Operate or Maintain Existing</fullName><default>false</default><label>Operate or Maintain Existing</label></value>
+                <value><fullName>Research or Study</fullName><default>false</default><label>Research or Study</label></value>
+                <value><fullName>Other</fullName><default>false</default><label>Other</label></value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    <fields>
+        <fullName>nepa_disturbance_acres__c</fullName>
+        <description>Total estimated surface disturbance in acres. Used by the CE Screener to enforce per-code acreage thresholds (e.g., EPA Sec.390(b)(1) ≤5 acres). Exceedance downgrades CE to EA.</description>
+        <inlineHelpText>Estimated total surface disturbance (acres). Required for CE acreage threshold checks.</inlineHelpText>
+        <externalId>false</externalId>
+        <label>Disturbance Acres</label>
+        <precision>10</precision>
+        <required>false</required>
+        <scale>2</scale>
+        <trackHistory>false</trackHistory>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>nepa_regulatory_citation__c</fullName>
+        <description>Regulatory citation the applicant believes applies (e.g., 10 CFR 1021 Appendix B, B1.3). Pre-filled by CE Screener; editable by permit manager.</description>
+        <inlineHelpText>Regulatory citation for the applicable CE or review type.</inlineHelpText>
+        <externalId>false</externalId>
+        <label>Regulatory Citation</label>
+        <length>255</length>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>nepa_screening_confidence__c</fullName>
+        <description>CE Screener confidence in the recommended review type classification. High = dominant pattern with ≥80% corpus support. Low = ambiguous or extraordinary circumstances present — requires SME review.</description>
+        <inlineHelpText>Screener confidence: High / Medium-High / Medium / Low. Low requires SME review before routing.</inlineHelpText>
+        <label>Screening Confidence</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Picklist</type>
+        <valueSet>
+            <restricted>true</restricted>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value><fullName>High</fullName><default>false</default><label>High</label></value>
+                <value><fullName>Medium-High</fullName><default>false</default><label>Medium-High</label></value>
+                <value><fullName>Medium</fullName><default>false</default><label>Medium</label></value>
+                <value><fullName>Low</fullName><default>false</default><label>Low</label></value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    <fields>
+        <fullName>nepa_extraordinary_circumstances__c</fullName>
+        <description>Semicolon-delimited list of GIS-flagged extraordinary circumstances present at the project site (e.g., ESA Critical Habitat; Wetlands; Tribal Lands; Floodplain). Any value disqualifies CE and downgrades to EA per CEQ regulations.</description>
+        <inlineHelpText>GIS-flagged extraordinary circumstances (e.g., ESA Critical Habitat; Wetlands). Any flag disqualifies CE.</inlineHelpText>
+        <externalId>false</externalId>
+        <label>Extraordinary Circumstances</label>
+        <length>255</length>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>nepa_classification_basis__c</fullName>
+        <description>Audit trail of which CE Screener rule(s) fired, the matched tier, agency, and any override conditions applied. Written by the NEPA_CE_Screener Flow. Retained in the administrative record.</description>
+        <inlineHelpText>Screener audit trail: which rule matched and why. Retained for the administrative record.</inlineHelpText>
+        <label>Classification Basis</label>
+        <length>32768</length>
+        <trackHistory>false</trackHistory>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
     <!-- Provenance fields (CEQ Standard v1.2 - required on all entities) -->
     <fields>
         <fullName>nepa_data_record_version__c</fullName>

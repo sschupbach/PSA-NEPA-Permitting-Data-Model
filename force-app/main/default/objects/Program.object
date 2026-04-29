@@ -249,6 +249,19 @@
         <type>LongTextArea</type>
         <visibleLines>2</visibleLines>
     </fields>
+    <!-- CE Screening fields (Priority 2) -->
+    <fields>
+        <fullName>nepa_applicant_naics__c</fullName>
+        <description>Six-digit NAICS code of the project sponsor's primary business activity. Used by the CE Screener as a secondary signal to route to the correct agency CE namespace and apply confidence modifiers (NAICS 211/212 → Low confidence). Not a primary CE classifier.</description>
+        <inlineHelpText>Applicant NAICS code (6 digits). Used to route CE namespace and flag high-risk industries.</inlineHelpText>
+        <externalId>false</externalId>
+        <label>Applicant NAICS Code</label>
+        <length>6</length>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
     <!-- Provenance fields (CEQ Standard v1.2 - required on all entities) -->
     <fields>
         <fullName>nepa_data_record_version__c</fullName>
