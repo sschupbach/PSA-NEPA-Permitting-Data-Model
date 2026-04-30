@@ -22,7 +22,6 @@ const testData = require('./testdata/permittec_sample.json');
 const byUuid = (uuid) => testData.find((r) => r.data.case_uuid === uuid);
 
 const spireSTL = byUuid('case-2-f-4th-953');
-const delawareRiverkeeper = byUuid('case-753-f-3d-1304');
 const barredOwl = byUuid('case-28-f-4th-19');
 const izembek = byUuid('case-29-f-4th-432');
 const mountainValley = byUuid('case-24-f-4th-915');
@@ -171,27 +170,30 @@ describe('mapLitigation — field constraints', () => {
     test('nepa_citation__c fits in 100 chars across all records', () => {
         for (const record of testData) {
             const result = mapLitigation(record);
-            if (result.nepa_citation__c) {
-                expect(result.nepa_citation__c.length).toBeLessThanOrEqual(100);
-            }
+            expect(
+                result.nepa_citation__c == null ||
+                result.nepa_citation__c.length <= 100
+            ).toBe(true);
         }
     });
 
     test('nepa_case_title__c fits in 255 chars across all records', () => {
         for (const record of testData) {
             const result = mapLitigation(record);
-            if (result.nepa_case_title__c) {
-                expect(result.nepa_case_title__c.length).toBeLessThanOrEqual(255);
-            }
+            expect(
+                result.nepa_case_title__c == null ||
+                result.nepa_case_title__c.length <= 255
+            ).toBe(true);
         }
     });
 
     test('nepa_ruling_date__c is ISO date format YYYY-MM-DD or null', () => {
         for (const record of testData) {
             const result = mapLitigation(record);
-            if (result.nepa_ruling_date__c !== null) {
-                expect(result.nepa_ruling_date__c).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-            }
+            expect(
+                result.nepa_ruling_date__c === null ||
+                /^\d{4}-\d{2}-\d{2}$/.test(result.nepa_ruling_date__c)
+            ).toBe(true);
         }
     });
 
@@ -431,12 +433,13 @@ describe('mapLitigation — full sample sweep', () => {
     });
 
     test('llm_keywords are semicolon-joined for all records with keywords', () => {
-        for (const record of testData) {
+        const multiKeywordRecords = testData.filter(
+            (r) => r.data.linked_to.llm_extracted_keywords?.length > 1
+        );
+        expect(multiKeywordRecords.length).toBeGreaterThan(0);
+        for (const record of multiKeywordRecords) {
             const result = mapLitigation(record);
-            const keywords = record.data.linked_to.llm_extracted_keywords;
-            if (keywords && keywords.length > 1) {
-                expect(result.nepa_llm_keywords__c).toContain('; ');
-            }
+            expect(result.nepa_llm_keywords__c).toContain('; ');
         }
     });
 

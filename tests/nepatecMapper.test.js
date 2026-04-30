@@ -169,13 +169,16 @@ describe('mapProgram', () => {
         '$combo[$index]: EIS records have lat/lon (standard location format)',
         ({ record }) => {
             const program = mapProgram(record);
-            // EIS records use "City, State (Lat/Lon: x, y)" — should parse
-            if (program.nepa_location_lat__c !== null) {
-                expect(program.nepa_location_lat__c).toBeGreaterThan(-90);
-                expect(program.nepa_location_lat__c).toBeLessThan(90);
-                expect(program.nepa_location_lon__c).toBeGreaterThan(-180);
-                expect(program.nepa_location_lon__c).toBeLessThan(180);
-            }
+            // EIS records use "City, State (Lat/Lon: x, y)" — lat/lon may be null for records
+            // with legal-description-only locations; when present they must be in valid range
+            expect(
+                program.nepa_location_lat__c === null ||
+                (program.nepa_location_lat__c > -90 && program.nepa_location_lat__c < 90)
+            ).toBe(true);
+            expect(
+                program.nepa_location_lon__c === null ||
+                (program.nepa_location_lon__c > -180 && program.nepa_location_lon__c < 180)
+            ).toBe(true);
         }
     );
 
@@ -261,8 +264,11 @@ describe('mapIndividualApplication', () => {
                 return typeof v === 'string' ? v : '';
             })
         );
-        seen.forEach((type) => {
-            if (type) expect(PROCESS_TYPE_MAP).toHaveProperty(type);
+        // Filter to non-empty types first, then assert unconditionally
+        const nonEmptyTypes = [...seen].filter(Boolean);
+        expect(nonEmptyTypes.length).toBeGreaterThan(0);
+        nonEmptyTypes.forEach((type) => {
+            expect(PROCESS_TYPE_MAP).toHaveProperty(type);
         });
     });
 });
@@ -414,13 +420,13 @@ describe('mapContentVersion', () => {
         const longTitle = eaBlmDocs
             .map((d) => d.metadata?.file_metadata?.section_or_volume_title?.value || '')
             .find((v) => v.length > 50);
-        if (longTitle) {
-            const doc = eaBlmDocs.find(
-                (d) => d.metadata?.file_metadata?.section_or_volume_title?.value === longTitle
-            );
-            const cv = mapContentVersion(doc);
-            expect(cv.nepa_volume_title__c.length).toBeGreaterThan(50);
-        }
+        // Assert the test data contains a long title (guards the assertion below)
+        expect(longTitle).toBeDefined();
+        const doc = eaBlmDocs.find(
+            (d) => d.metadata?.file_metadata?.section_or_volume_title?.value === longTitle
+        );
+        const cv = mapContentVersion(doc);
+        expect(cv.nepa_volume_title__c.length).toBeGreaterThan(50);
     });
 
     test.each(allDocs.slice(0, 50))(
@@ -538,27 +544,30 @@ describe('Field constraint validation', () => {
     test('nepa_project_id__c length ≤ 36 chars (External ID field length)', () => {
         allRecords.forEach(({ record }) => {
             const program = mapProgram(record);
-            if (program.nepa_project_id__c) {
-                expect(program.nepa_project_id__c.length).toBeLessThanOrEqual(36);
-            }
+            expect(
+                program.nepa_project_id__c == null ||
+                program.nepa_project_id__c.length <= 36
+            ).toBe(true);
         });
     });
 
     test('nepa_project_title__c length ≤ 255 chars (Text field)', () => {
         allRecords.forEach(({ record }) => {
             const program = mapProgram(record);
-            if (program.nepa_project_title__c) {
-                expect(program.nepa_project_title__c.length).toBeLessThanOrEqual(255);
-            }
+            expect(
+                program.nepa_project_title__c == null ||
+                program.nepa_project_title__c.length <= 255
+            ).toBe(true);
         });
     });
 
     test('nepa_lead_agency__c length ≤ 255 chars (Text field)', () => {
         allRecords.forEach(({ record }) => {
             const program = mapProgram(record);
-            if (program.nepa_lead_agency__c) {
-                expect(program.nepa_lead_agency__c.length).toBeLessThanOrEqual(255);
-            }
+            expect(
+                program.nepa_lead_agency__c == null ||
+                program.nepa_lead_agency__c.length <= 255
+            ).toBe(true);
         });
     });
 
@@ -607,20 +616,20 @@ describe('Field constraint validation', () => {
     test('nepa_location_lat__c is in valid range [-90, 90] when present', () => {
         allRecords.forEach(({ record }) => {
             const program = mapProgram(record);
-            if (program.nepa_location_lat__c !== null) {
-                expect(program.nepa_location_lat__c).toBeGreaterThanOrEqual(-90);
-                expect(program.nepa_location_lat__c).toBeLessThanOrEqual(90);
-            }
+            expect(
+                program.nepa_location_lat__c === null ||
+                (program.nepa_location_lat__c >= -90 && program.nepa_location_lat__c <= 90)
+            ).toBe(true);
         });
     });
 
     test('nepa_location_lon__c is in valid range [-180, 180] when present', () => {
         allRecords.forEach(({ record }) => {
             const program = mapProgram(record);
-            if (program.nepa_location_lon__c !== null) {
-                expect(program.nepa_location_lon__c).toBeGreaterThanOrEqual(-180);
-                expect(program.nepa_location_lon__c).toBeLessThanOrEqual(180);
-            }
+            expect(
+                program.nepa_location_lon__c === null ||
+                (program.nepa_location_lon__c >= -180 && program.nepa_location_lon__c <= 180)
+            ).toBe(true);
         });
     });
 

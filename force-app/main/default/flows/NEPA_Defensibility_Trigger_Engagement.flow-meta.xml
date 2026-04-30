@@ -63,5 +63,11 @@
             </connector>
             <pathType>AsyncAfterCommit</pathType>
         </scheduledPaths>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>nepa_process__c</field>
+            <operator>IsNull</operator>
+            <value><booleanValue>false</booleanValue></value>
+        </filters>
     </start>
 </Flow>

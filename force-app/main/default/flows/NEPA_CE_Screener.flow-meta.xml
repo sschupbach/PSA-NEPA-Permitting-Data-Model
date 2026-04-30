@@ -994,6 +994,7 @@
     <!-- ============================================================
          WRITE BACK to IndividualApplication
     ============================================================ -->
+    <!-- code-analyzer-suppress flow:SameRecordUpdate — intentional async after-save write-back via AsyncAfterCommit scheduledPath; this is the recommended pattern for expensive same-record updates -->
     <recordUpdates>
         <name>Update_ScreeningFields</name>
         <label>Update CE Screening Fields</label>
