@@ -244,8 +244,9 @@
         <members>NEPA_Defensibility_Gap_Checker</members>
         <members>NEPA_Defensibility_Trigger_ContentVersion</members>
         <members>NEPA_Defensibility_Trigger_Engagement</members>
-        <!-- Priority 2: CE Screening Flow -->
+        <!-- Priority 2: CE Screening + Routing Flows -->
         <members>NEPA_CE_Screener</members>
+        <members>NEPA_CE_Determination_Router</members>
         <!-- Priority 6: Workflow Orchestration -->
         <members>NEPA_Stage_Gate</members>
         <!-- Priority 9: Administrative Record Completeness -->
