@@ -440,6 +440,21 @@
     <!-- nepa_engagement__c (Entity 5: Public Engagement Events) -->
     <fieldPermissions>
         <editable>true</editable>
+        <field>nepa_engagement__c.nepa_process__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>nepa_engagement__c.nepa_engagement_type__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>nepa_engagement__c.nepa_start_datetime__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>nepa_engagement__c.nepa_end_datetime__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -574,10 +589,76 @@
         <field>ApplicationTimeline.nepa_retrieved_timestamp__c</field>
         <readable>true</readable>
     </fieldPermissions>
+    <!-- Priority 6: Workflow Orchestration fields (read-only — written by NEPA_Stage_Gate Flow) -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_last_stage_transition__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>IndividualApplication.nepa_target_completion_date__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <!-- Priority 9: Administrative Record Completeness fields (read-only — written by NEPA_Administrative_Record_Checker Flow) -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_record_completeness__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_missing_documents__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_record_completeness_updated__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <!-- CE Screening fields (Priority 2: Automated CE Screening) -->
+    <!-- nepa_action_type__c, nepa_disturbance_acres__c, nepa_extraordinary_circumstances__c are editable: applicant/PM fills these in at intake -->
+    <!-- nepa_screening_confidence__c and nepa_classification_basis__c are read-only: written by NEPA_CE_Screener Flow -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>IndividualApplication.nepa_action_type__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>IndividualApplication.nepa_disturbance_acres__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>IndividualApplication.nepa_regulatory_citation__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_screening_confidence__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>IndividualApplication.nepa_extraordinary_circumstances__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_classification_basis__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <!-- Program roll-up from litigation -->
     <fieldPermissions>
         <editable>false</editable>
         <field>Program.nepa_litigation_count__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <!-- CE Screening field (Priority 2) -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Program.nepa_applicant_naics__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <!-- nepa_litigation__c (PermitTEC litigation cases) fields -->
@@ -659,7 +740,27 @@
     <!-- Junction object fields -->
     <fieldPermissions>
         <editable>true</editable>
+        <field>nepa_project_agency_relationship__c.Agency__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>nepa_project_agency_relationship__c.nepa_Project__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>nepa_process_related_agencies__c.Agency__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>nepa_process_related_agencies__c.Processes__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>nepa_process_related_agencies__c.nepa_role__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
@@ -707,6 +808,15 @@
         <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
         <object>nepa_project_agency_relationship__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>nepa_process_related_agencies__c</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
 </PermissionSet>

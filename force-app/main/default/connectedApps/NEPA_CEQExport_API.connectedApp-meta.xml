@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConnectedApp xmlns="http://soap.sforce.com/2006/04/metadata">
+    <contactEmail>nepa-admin@agency.gov</contactEmail>
+    <description>OAuth 2.0 Connected App for the CEQ NEPA Export API (MFR #2). Grants external systems access to the NEPA/CEQExport Integration Procedure via the REST API. Fulfills CEQ Permitting Technology Action Plan MFR #2 (Application Data Sharing) at Emerging maturity. Scope: api. IP relaxation required for federal data center ranges.</description>
+    <label>NEPA CEQExport API</label>
+    <oauthConfig>
+        <callbackUrl>https://login.salesforce.com/services/oauth2/callback</callbackUrl>
+        <consumerKey/>
+        <isAdminApproved>true</isAdminApproved>
+        <isConsumerSecretOptional>false</isConsumerSecretOptional>
+        <isIntrospectAllTokens>false</isIntrospectAllTokens>
+        <isSecretRequiredForRefreshToken>true</isSecretRequiredForRefreshToken>
+        <oauthFlows>
+            <oauthFlow>ClientCredentials</oauthFlow>
+        </oauthFlows>
+        <scopes>
+            <scope>Api</scope>
+        </scopes>
+        <sessionTimeout>Session</sessionTimeout>
+    </oauthConfig>
+    <permissionSetName>NEPA_Permitting</permissionSetName>
+</ConnectedApp>

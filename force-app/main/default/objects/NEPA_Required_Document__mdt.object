@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Defines required document types per NEPA review type for administrative record completeness scoring. Seeded with minimum viable checklist per CEQ regulations. Used by NEPA_Administrative_Record_Checker Flow to calculate IndividualApplication.nepa_record_completeness__c.</description>
+    <label>NEPA Required Document</label>
+    <pluralLabel>NEPA Required Documents</pluralLabel>
+    <fields>
+        <fullName>Review_Type__c</fullName>
+        <description>NEPA review type this requirement applies to: CE, EA, or EIS.</description>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>Review Type</label>
+        <length>10</length>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Document_Type__c</fullName>
+        <description>Required document type. Must match a valid value in ContentVersion.nepa_document_type__c.</description>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>Document Type</label>
+        <length>100</length>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Is_Required__c</fullName>
+        <description>When true, the document must be present in Approved or Published status for the process to reach full completeness. When false, the document is recommended but not counted in the score.</description>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>Is Required</label>
+        <type>Checkbox</type>
+        <defaultValue>true</defaultValue>
+    </fields>
+    <fields>
+        <fullName>Stage_Required_By__c</fullName>
+        <description>Process stage by which this document must be present (informational). Used to generate missing-document alert context.</description>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>Stage Required By</label>
+        <length>100</length>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Display_Order__c</fullName>
+        <description>Sort order for display in completeness gap messages.</description>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>Display Order</label>
+        <precision>3</precision>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Active__c</fullName>
+        <description>Inactive rules are excluded from completeness calculations.</description>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>Active</label>
+        <type>Checkbox</type>
+        <defaultValue>true</defaultValue>
+    </fields>
+</CustomObject>

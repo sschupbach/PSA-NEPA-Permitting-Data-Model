@@ -4,7 +4,7 @@
   "SubType": "CEQExport",
   "Language": "English",
   "VersionNumber": 1,
-  "IsActive": false,
+  "IsActive": true,
   "IsIntegrationProcedure": true,
   "Description": "Assembles a CEQ NEPA and Permitting Data and Technology Standard v1.2 compliant JSON payload for a given Project (Program). Inputs: projectId (Program.Id). Output: CEQPayload containing all 6 implemented entities: Project, Processes, Documents (with nested Comments), Public Engagement Events, and Case Events. Exposes MFR #2 data sharing capability when activated with an API Action.",
   "PropertySetConfig": "{\"persistentComponent\":true,\"trackingCustomData\":{},\"enableLWCRuntime\":true}",
@@ -19,7 +19,11 @@
       "PropertySetConfig": {
         "bundleName": "DR_Extract_NEPA_Project",
         "inputMap": [
-          {"name": "projectId", "value": "%projectId%", "valueType": "reference"}
+          {
+            "name": "projectId",
+            "value": "%projectId%",
+            "valueType": "reference"
+          }
         ],
         "outputPath": "Project",
         "chainOnStep": "",
@@ -38,7 +42,11 @@
       "PropertySetConfig": {
         "bundleName": "DR_Extract_NEPA_Process",
         "inputMap": [
-          {"name": "projectId", "value": "%projectId%", "valueType": "reference"}
+          {
+            "name": "projectId",
+            "value": "%projectId%",
+            "valueType": "reference"
+          }
         ],
         "outputPath": "processes",
         "chainOnStep": "",
@@ -69,7 +77,11 @@
           "PropertySetConfig": {
             "bundleName": "DR_Extract_NEPA_Document",
             "inputMap": [
-              {"name": "processId", "value": "%currentProcess:id%", "valueType": "reference"}
+              {
+                "name": "processId",
+                "value": "%currentProcess:id%",
+                "valueType": "reference"
+              }
             ],
             "outputPath": "documents",
             "failOnStepError": false,
@@ -97,7 +109,11 @@
               "PropertySetConfig": {
                 "bundleName": "DR_Extract_NEPA_Comment",
                 "inputMap": [
-                  {"name": "documentId", "value": "%currentDocument:id%", "valueType": "reference"}
+                  {
+                    "name": "documentId",
+                    "value": "%currentDocument:id%",
+                    "valueType": "reference"
+                  }
                 ],
                 "outputPath": "currentDocument:comments",
                 "failOnStepError": false,
@@ -127,7 +143,11 @@
           "PropertySetConfig": {
             "bundleName": "DR_Extract_NEPA_EngagementEvent",
             "inputMap": [
-              {"name": "processId", "value": "%currentProcess:id%", "valueType": "reference"}
+              {
+                "name": "processId",
+                "value": "%currentProcess:id%",
+                "valueType": "reference"
+              }
             ],
             "outputPath": "currentProcess:public_engagement_events",
             "failOnStepError": false,
@@ -143,7 +163,11 @@
           "PropertySetConfig": {
             "bundleName": "DR_Extract_NEPA_CaseEvent",
             "inputMap": [
-              {"name": "processId", "value": "%currentProcess:id%", "valueType": "reference"}
+              {
+                "name": "processId",
+                "value": "%currentProcess:id%",
+                "valueType": "reference"
+              }
             ],
             "outputPath": "currentProcess:case_events",
             "failOnStepError": false,

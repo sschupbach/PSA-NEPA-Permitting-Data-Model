@@ -353,6 +353,58 @@
         <trackHistory>false</trackHistory>
         <type>DateTime</type>
     </fields>
+    <!-- Priority 6: Workflow Orchestration fields -->
+    <fields>
+        <fullName>nepa_last_stage_transition__c</fullName>
+        <description>Timestamp of the most recent nepa_process_stage__c change. Set by the NEPA_Stage_Gate Flow on every stage transition. Used by the Timeline Risk Scorer (Priority 4) to compute days-in-stage.</description>
+        <inlineHelpText>When the process last advanced to a new stage. Updated automatically by Flow.</inlineHelpText>
+        <label>Last Stage Transition</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>DateTime</type>
+    </fields>
+    <fields>
+        <fullName>nepa_target_completion_date__c</fullName>
+        <description>Target completion date set at Action Plan creation based on review type default durations (CE: 30 days, EA: 180 days, EIS: 730 days). May be updated by NEPA coordinator.</description>
+        <inlineHelpText>Target completion date (set at process initiation based on review type).</inlineHelpText>
+        <label>Target Completion Date</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Date</type>
+    </fields>
+    <!-- Priority 9: Administrative Record Completeness fields -->
+    <fields>
+        <fullName>nepa_record_completeness__c</fullName>
+        <description>Percentage (0-100) of required documents present at Approved or Published status for this process's review type. Recalculated by NEPA_Administrative_Record_Checker Flow whenever a ContentVersion record is created or updated.</description>
+        <inlineHelpText>Administrative record completeness: percentage of required documents present. 100% required before final stage gates.</inlineHelpText>
+        <externalId>false</externalId>
+        <label>Record Completeness</label>
+        <precision>5</precision>
+        <required>false</required>
+        <scale>1</scale>
+        <trackHistory>false</trackHistory>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>nepa_missing_documents__c</fullName>
+        <description>Semicolon-delimited list of required document types not yet present at Approved or Published status. Written by NEPA_Administrative_Record_Checker Flow. Used in stage-gate blocking logic and displayed on the record page.</description>
+        <inlineHelpText>Required documents not yet uploaded or approved. Blocks final stage gates when populated.</inlineHelpText>
+        <label>Missing Documents</label>
+        <length>32768</length>
+        <trackHistory>false</trackHistory>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
+    <fields>
+        <fullName>nepa_record_completeness_updated__c</fullName>
+        <description>Timestamp of the last completeness score recalculation.</description>
+        <inlineHelpText>When the record completeness score was last recalculated.</inlineHelpText>
+        <label>Completeness Updated</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>DateTime</type>
+    </fields>
     <!-- CE Screening fields (Priority 2: Automated CE Screening) -->
     <fields>
         <fullName>nepa_action_type__c</fullName>

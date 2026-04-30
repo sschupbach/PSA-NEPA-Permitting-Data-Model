@@ -34,6 +34,13 @@
         <members>IndividualApplication.nepa_data_source_system__c</members>
         <members>IndividualApplication.nepa_record_owner_agency__c</members>
         <members>IndividualApplication.nepa_retrieved_timestamp__c</members>
+        <!-- Priority 6: Workflow Orchestration fields -->
+        <members>IndividualApplication.nepa_last_stage_transition__c</members>
+        <members>IndividualApplication.nepa_target_completion_date__c</members>
+        <!-- Priority 9: Administrative Record Completeness fields -->
+        <members>IndividualApplication.nepa_record_completeness__c</members>
+        <members>IndividualApplication.nepa_missing_documents__c</members>
+        <members>IndividualApplication.nepa_record_completeness_updated__c</members>
         <!-- CE Screening fields (Priority 2) -->
         <members>IndividualApplication.nepa_action_type__c</members>
         <members>IndividualApplication.nepa_disturbance_acres__c</members>
@@ -189,6 +196,13 @@
     <members>NEPA_CE_Code__mdt.Is_Multi_Code__c</members>
     <members>NEPA_CE_Code__mdt.Record_Count_NEPATEC__c</members>
     <members>NEPA_CE_Code__mdt.Active__c</members>
+    <!-- Required Document Checklist CMT fields (Priority 9) -->
+    <members>NEPA_Required_Document__mdt.Review_Type__c</members>
+    <members>NEPA_Required_Document__mdt.Document_Type__c</members>
+    <members>NEPA_Required_Document__mdt.Is_Required__c</members>
+    <members>NEPA_Required_Document__mdt.Stage_Required_By__c</members>
+    <members>NEPA_Required_Document__mdt.Display_Order__c</members>
+    <members>NEPA_Required_Document__mdt.Active__c</members>
     <!-- nepa_litigation__c (PermitTEC litigation cases) custom fields -->
     <members>nepa_litigation__c.nepa_case_title__c</members>
     <members>nepa_litigation__c.nepa_citation__c</members>
@@ -220,6 +234,7 @@
         <members>NEPA_Challenge_Prediction_Rule__mdt</members>
         <members>NEPA_CE_Screening_Rule__mdt</members>
         <members>NEPA_CE_Code__mdt</members>
+        <members>NEPA_Required_Document__mdt</members>
         <name>CustomMetadata</name>
     </types>
     <types>
@@ -231,15 +246,22 @@
         <members>NEPA_Defensibility_Trigger_Engagement</members>
         <!-- Priority 2: CE Screening Flow -->
         <members>NEPA_CE_Screener</members>
+        <!-- Priority 6: Workflow Orchestration -->
+        <members>NEPA_Stage_Gate</members>
+        <!-- Priority 9: Administrative Record Completeness -->
+        <members>NEPA_Administrative_Record_Checker</members>
         <name>Flow</name>
     </types>
     <types>
         <!-- Industries Action Plan Templates -->
         <members>NEPA_EIS_Process_Milestones</members>
         <members>NEPA_EA_Process_Milestones</members>
+        <members>NEPA_CE_Process_Milestones</members>
         <name>ActionPlanTemplate</name>
     </types>
     <types>
+        <members>IndividualApplication_Record_Page</members>
+        <members>Program_Record_Page</members>
         <members>Public_Comment_Record_Page</members>
         <name>FlexiPage</name>
     </types>
@@ -277,6 +299,10 @@
     <types>
         <members>NEPA/CEQExport</members>
         <name>OmniIntegrationProcedure</name>
+    </types>
+    <types>
+        <members>NEPA_CEQExport_API</members>
+        <name>ConnectedApp</name>
     </types>
     <version>62.0</version>
 </Package>

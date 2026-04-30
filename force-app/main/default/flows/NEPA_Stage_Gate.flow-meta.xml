@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <description>Priority 6: Stage-gate automation for IndividualApplication. Fires before-save when nepa_process_stage__c changes. Updates nepa_last_stage_transition__c. Fires after-save async when nepa_process_status__c transitions to completed: sets nepa_completion_date__c if blank. A separate after-save path fires when a key document-type ApplicationTimeline event status becomes Completed: advances nepa_process_stage__c and sends notification. Also triggers on nepa_review_type__c set for the first time to stamp nepa_target_completion_date__c based on review type defaults (CE: 30d, EA: 180d, EIS: 730d).</description>
+    <label>NEPA Stage Gate</label>
+    <processType>AutoLaunchedFlow</processType>
+    <status>Draft</status>
+
+    <!-- Variables -->
+    <variables>
+        <name>var_ErrorMessage</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>var_TargetDays</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+        <value><numberValue>180.0</numberValue></value>
+    </variables>
+
+    <!-- ============================================================
+         BEFORE-SAVE FLOW: stamp transition timestamp + target date
+    ============================================================ -->
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <object>IndividualApplication</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+        <connector>
+            <targetReference>Decision_StageChanged</targetReference>
+        </connector>
+        <filterLogic>or</filterLogic>
+        <filters>
+            <field>nepa_process_stage__c</field>
+            <operator>IsChanged</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+        <filters>
+            <field>nepa_review_type__c</field>
+            <operator>IsChanged</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+        <filters>
+            <field>nepa_process_status__c</field>
+            <operator>IsChanged</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+    </start>
+
+    <decisions>
+        <name>Decision_StageChanged</name>
+        <label>Which Field Changed?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Status or Review Type Change</defaultConnectorLabel>
+        <defaultConnector>
+            <targetReference>Decision_ReviewTypeFirstSet</targetReference>
+        </defaultConnector>
+        <rules>
+            <name>Stage_Changed</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_process_stage__c</leftValueReference>
+                <operator>IsChanged</operator>
+                <rightValue><booleanValue>true</booleanValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_StageTransitionTimestamp</targetReference>
+            </connector>
+            <label>Stage Changed</label>
+        </rules>
+    </decisions>
+
+    <!-- Stamp transition timestamp on stage change (before-save, no DML needed) -->
+    <assignments>
+        <name>Assign_StageTransitionTimestamp</name>
+        <label>Stamp Last Stage Transition Timestamp</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.nepa_last_stage_transition__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.CurrentDateTime</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Decision_ReviewTypeFirstSet</targetReference>
+        </connector>
+    </assignments>
+
+    <!-- Set target completion date when review type is first assigned -->
+    <decisions>
+        <name>Decision_ReviewTypeFirstSet</name>
+        <label>Review Type First Set?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Not First Set or No Review Type</defaultConnectorLabel>
+        <defaultConnector>
+            <targetReference>Decision_ProcessCompleted</targetReference>
+        </defaultConnector>
+        <rules>
+            <name>ReviewType_FirstSet</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_review_type__c</leftValueReference>
+                <operator>IsChanged</operator>
+                <rightValue><booleanValue>true</booleanValue></rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.nepa_target_completion_date__c</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue><booleanValue>true</booleanValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Decision_ReviewTypeForTarget</targetReference>
+            </connector>
+            <label>Review Type First Set and No Target Date Yet</label>
+        </rules>
+    </decisions>
+
+    <decisions>
+        <name>Decision_ReviewTypeForTarget</name>
+        <label>Which Review Type for Target Date?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>EA Default (180 days)</defaultConnectorLabel>
+        <defaultConnector>
+            <targetReference>Assign_TargetDays_EA</targetReference>
+        </defaultConnector>
+        <rules>
+            <name>ReviewType_CE</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_review_type__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><stringValue>CE</stringValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_TargetDays_CE</targetReference>
+            </connector>
+            <label>CE (30 days)</label>
+        </rules>
+        <rules>
+            <name>ReviewType_EIS</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_review_type__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><stringValue>EIS</stringValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_TargetDays_EIS</targetReference>
+            </connector>
+            <label>EIS (730 days)</label>
+        </rules>
+    </decisions>
+
+    <assignments>
+        <name>Assign_TargetDays_CE</name>
+        <label>CE: 30 Days</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_TargetDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>30.0</numberValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Assign_TargetDate</targetReference>
+        </connector>
+    </assignments>
+
+    <assignments>
+        <name>Assign_TargetDays_EA</name>
+        <label>EA: 180 Days</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_TargetDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>180.0</numberValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Assign_TargetDate</targetReference>
+        </connector>
+    </assignments>
+
+    <assignments>
+        <name>Assign_TargetDays_EIS</name>
+        <label>EIS: 730 Days</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_TargetDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>730.0</numberValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Assign_TargetDate</targetReference>
+        </connector>
+    </assignments>
+
+    <!-- Add var_TargetDays days to today using a formula via a formula variable -->
+    <formulas>
+        <name>formula_TargetDate</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() + {!var_TargetDays}</expression>
+    </formulas>
+
+    <assignments>
+        <name>Assign_TargetDate</name>
+        <label>Set Target Completion Date</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.nepa_target_completion_date__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>formula_TargetDate</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Decision_ProcessCompleted</targetReference>
+        </connector>
+    </assignments>
+
+    <!-- Stamp completion date when status transitions to completed -->
+    <decisions>
+        <name>Decision_ProcessCompleted</name>
+        <label>Process Status Transitioning to Completed?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Not Completing</defaultConnectorLabel>
+        <rules>
+            <name>Status_Completing</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_process_status__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><stringValue>completed</stringValue></rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.nepa_completion_date__c</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue><booleanValue>true</booleanValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_CompletionDate</targetReference>
+            </connector>
+            <label>Status = completed and No Completion Date</label>
+        </rules>
+    </decisions>
+
+    <assignments>
+        <name>Assign_CompletionDate</name>
+        <label>Stamp Completion Date</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.nepa_completion_date__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.CurrentDate</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+</Flow>

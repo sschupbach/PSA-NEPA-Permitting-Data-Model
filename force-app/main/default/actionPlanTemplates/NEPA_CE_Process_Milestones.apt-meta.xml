@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionPlanTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Standard milestone tasks for a CE-class NEPA review. Target: 30 days from application receipt to CE determination. Assign to IndividualApplication with Review Type = CE.</description>
+    <isAdHocItemCreationEnabled>false</isAdHocItemCreationEnabled>
+    <name>NEPA CE Process Milestones</name>
+    <targetEntityType>IndividualApplication</targetEntityType>
+    <uniqueName>NEPA_CE_Process_Milestones</uniqueName>
+    <actionPlanTemplateItem>
+        <displayOrder>1</displayOrder>
+        <isRequired>true</isRequired>
+        <itemEntityType>Task</itemEntityType>
+        <name>Validate CE Screening Classification</name>
+        <uniqueName>NEPA_CE_Item_1_Screening</uniqueName>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Subject</name>
+            <valueLiteral>Validate CE Screening Classification</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Priority</name>
+            <valueLiteral>High</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Description</name>
+            <valueLiteral>Review automated CE screening result (nepa_screening_confidence__c, nepa_process_code__c). Verify the recommended CE code applies to the proposed action and physical parameters. Confirm no extraordinary circumstances are present at the project site. Due day 5.</valueLiteral>
+        </actionPlanTemplateItemValue>
+    </actionPlanTemplateItem>
+    <actionPlanTemplateItem>
+        <displayOrder>2</displayOrder>
+        <isRequired>true</isRequired>
+        <itemEntityType>Task</itemEntityType>
+        <name>Prepare CE Determination Document</name>
+        <uniqueName>NEPA_CE_Item_2_Documentation</uniqueName>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Subject</name>
+            <valueLiteral>Prepare CE Determination Document</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Priority</name>
+            <valueLiteral>High</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Description</name>
+            <valueLiteral>Prepare the CE Determination document citing the applicable CE code (nepa_process_code__c), regulatory citation (nepa_regulatory_citation__c), and extraordinary circumstances certification. Upload to ContentVersion with document type = CE Determination and record category = Decision Record. Due day 15.</valueLiteral>
+        </actionPlanTemplateItemValue>
+    </actionPlanTemplateItem>
+    <actionPlanTemplateItem>
+        <displayOrder>3</displayOrder>
+        <isRequired>true</isRequired>
+        <itemEntityType>Task</itemEntityType>
+        <name>Supervisor Review of CE Determination</name>
+        <uniqueName>NEPA_CE_Item_3_Review</uniqueName>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Subject</name>
+            <valueLiteral>Supervisor Review and Approval of CE Determination</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Priority</name>
+            <valueLiteral>High</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Description</name>
+            <valueLiteral>NEPA supervisor reviews CE Determination for legal sufficiency, correct CE code citation, and extraordinary circumstances sign-off. Approve or return for revision. Update ContentVersion status to Approved when complete. Due day 25.</valueLiteral>
+        </actionPlanTemplateItemValue>
+    </actionPlanTemplateItem>
+    <actionPlanTemplateItem>
+        <displayOrder>4</displayOrder>
+        <isRequired>true</isRequired>
+        <itemEntityType>Task</itemEntityType>
+        <name>Issue CE Determination and Close Record</name>
+        <uniqueName>NEPA_CE_Item_4_Close</uniqueName>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Subject</name>
+            <valueLiteral>Issue CE Determination and Close NEPA Record</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Priority</name>
+            <valueLiteral>High</valueLiteral>
+        </actionPlanTemplateItemValue>
+        <actionPlanTemplateItemValue>
+            <itemEntityType>Task</itemEntityType>
+            <name>Description</name>
+            <valueLiteral>Publish CE Determination. Set ContentVersion status = Published. Update IndividualApplication: nepa_process_status__c = completed, nepa_completion_date__c = today. Notify applicant. Due day 30.</valueLiteral>
+        </actionPlanTemplateItemValue>
+    </actionPlanTemplateItem>
+</ActionPlanTemplate>
