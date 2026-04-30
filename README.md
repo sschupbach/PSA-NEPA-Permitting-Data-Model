@@ -260,6 +260,27 @@ The Integration Procedure `NEPA/CEQExport` accepts a `projectId` (the Salesforce
 > **Note:** OmniStudio (formerly Vlocity) must be installed in your org. The Integration Procedure and DataRaptor metadata files are included in this package and can be deployed via SFDX. If you do not have OmniStudio, you can implement equivalent export logic using Apex or Flow.
 
 
+## PSS Dependency
+
+This Accelerator is built on **Salesforce Public Sector Solutions (PSS)** and depends on three PSS standard objects that are not available in a standard Salesforce org:
+
+| PSS Object | CEQ Entity | Dependency |
+|---|---|---|
+| `IndividualApplication` | Entity 2: Process | All 11 automation flows, permission set FLS, OmniStudio DataRaptor |
+| `Program` | Entity 1: Project | Litigation risk scoring, CE screener, DataRaptor extract |
+| `ApplicationTimeline` | Entity 6: Case Events | CE Determination Router, Timeline Risk Assessor, Admin Record Checker |
+
+**If your org does not have PSS installed**, you will need to substitute these objects before deploying:
+
+1. **`IndividualApplication`** — replace with a custom object (e.g., `NEPA_Process__c`) or a standard object such as `Case`. Update every flow's `Get_IndividualApplication` recordLookup, all `inputAssignments` writing to `IndividualApplicationId`, and all `fieldPermissions` referencing `IndividualApplication.*` in the permission set.
+2. **`Program`** — replace with a custom object or `Account`. Update the Litigation Risk Scorer's `Get_RelatedProject` lookup and the `nepa_related_project__c` lookup field on `IndividualApplication`.
+3. **`ApplicationTimeline`** — replace with a custom child object. Update the `IndividualApplicationId` master-detail field name and the `nepa_related_case_event__c` lookup on `ContentVersion`.
+
+The three custom objects (`nepa_engagement__c`, `nepa_litigation__c`, `nepa_process_related_agencies__c`) and all custom metadata types are PSS-independent and deploy without modification.
+
+**Installing PSS**: A free PSS developer org is available at the [PSS trial link](https://developer.salesforce.com/free-trials/comparison/public-sector) listed in Before You Install below. This is the recommended path — substituting the PSS objects removes access to PSS-native features such as Action Plans, OmniStudio, and the Application and Authorization data model relationships that the CEQ export relies on.
+
+
 ## Data Model Notes
 
 **Process status values** align with the CEQ standard: `planned | pre-application | in progress | paused | completed | cancelled`. These are intentionally not enumerated in the standard to allow agency flexibility — the picklist values provided are recommended defaults.
@@ -275,6 +296,8 @@ The Integration Procedure `NEPA/CEQExport` accepts a `projectId` (the Salesforce
 **Multi-value text fields**: `Program.nepa_project_sector__c` and `Program.nepa_project_type__c` are LongTextArea fields that support multiple values separated by semicolons. Many real-world NEPA projects span multiple sectors and project types simultaneously (e.g., a resource management plan covering energy, land use, transportation, water, and agriculture). The CEQ standard does not restrict these to single values.
 
 **Main document flag**: `ContentVersion.nepa_main_document__c` (Checkbox) distinguishes the primary document body from supporting files. Set to `true` for the main EIS/EA/CE document; `false` for appendices, attachments, maps, and supplemental files. Aligns with the NEPATEC2.0 corpus `main_document` field.
+
+**Object choice — `IndividualApplication` vs. `BusinessLicenseApplication`**: The PSS standard object chosen for CEQ Entity 2 (Process) is `IndividualApplication`, not `BusinessLicenseApplication`. This is intentional. NEPA proponents include individuals, joint ventures, tribes, federal agencies, and businesses — not exclusively commercial entities — so `BusinessLicenseApplication`'s business-licensing assumptions (renewal cycles, license numbers, business entity links) do not fit the NEPA process lifecycle. `IndividualApplication` carries the stage, status, and outcome workflow fields that map directly to CEQ's Process entity properties. The PSS object label can be overridden to "NEPA Process" or "Permit Application" in Setup → Object Manager without changing the API name or any downstream metadata.
 
 
 ## Revision History

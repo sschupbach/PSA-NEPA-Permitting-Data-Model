@@ -5,6 +5,7 @@ Salesforce PSS-based NEPA permitting data model aligned to CEQ NEPA and Permitti
 ## Project Context
 
 - **6 CEQ entities:** Program (Project), IndividualApplication (Process), ContentVersion (Documents), PublicComplaint (Comments), nepa_engagement__c (Public Engagement Events), ApplicationTimeline (Case Events)
+- **Object choice rationale:** `IndividualApplication` (not `BusinessLicenseApplication`) maps CEQ Entity 2 (Process) because NEPA proponents span individuals, businesses, agencies, tribes, and joint ventures — not exclusively commercial entities — and `IndividualApplication` carries the stage/status/outcome lifecycle fields that align with CEQ's Process properties. `BusinessLicenseApplication` carries business-licensing assumptions (renewal cycles, license numbers) that do not fit NEPA.
 - **nepa_litigation__c:** Custom object mapping PermitTEC v0.1 litigation cases (761 NEPA cases, PNNL 2025)
 - **Phase 1 Risk Intelligence:** Litigation risk scoring, challenge prediction, defensibility gap detection — all Flow-based with custom metadata weight tables pre-seeded from PermitTEC corpus
 - **Automation preference:** Flows over Apex. Use before-save for same-record updates; after-save async for related-record work and subflow calls
