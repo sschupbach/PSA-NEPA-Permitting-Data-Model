@@ -621,6 +621,22 @@
         <field>IndividualApplication.nepa_target_completion_date__c</field>
         <readable>true</readable>
     </fieldPermissions>
+    <!-- Priority 4: Timeline Risk fields (read-only — written by NEPA_Timeline_Risk_Assessor Flow; nepa_days_in_current_stage__c is formula) -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_timeline_risk_tier__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_estimated_completion_date__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>IndividualApplication.nepa_days_in_current_stage__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <!-- Priority 9: Administrative Record Completeness fields (read-only — written by NEPA_Administrative_Record_Checker Flow) -->
     <fieldPermissions>
         <editable>false</editable>

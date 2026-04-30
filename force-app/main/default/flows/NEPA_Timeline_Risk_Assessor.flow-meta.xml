@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <description>Priority 4: Timeline risk assessment for IndividualApplication. Fires after-save async when nepa_process_stage__c, nepa_process_status__c, or nepa_last_stage_transition__c changes. Computes nepa_timeline_risk_tier__c (On Track / At Risk / Stalled / Overdue) by comparing nepa_days_in_current_stage__c to review-type stage baselines. Sets nepa_estimated_completion_date__c based on remaining days at current pace. When tier transitions to At Risk or worse, creates an ApplicationTimeline event (Process Paused) and a coordinator escalation Task.</description>
+    <label>NEPA Timeline Risk Assessor</label>
+    <processType>AutoLaunchedFlow</processType>
+    <status>Draft</status>
+
+    <!-- ============================================================
+         VARIABLES
+    ============================================================ -->
+
+    <variables>
+        <name>var_RiskTier</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <value><stringValue>On Track</stringValue></value>
+    </variables>
+    <variables>
+        <name>var_BaselineDays</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+        <value><numberValue>180.0</numberValue></value>
+    </variables>
+    <variables>
+        <name>var_OverdueDays</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+        <value><numberValue>270.0</numberValue></value>
+    </variables>
+    <variables>
+        <name>var_StalledDays</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+        <value><numberValue>225.0</numberValue></value>
+    </variables>
+    <variables>
+        <name>var_AtRiskDays</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+        <value><numberValue>198.0</numberValue></value>
+    </variables>
+    <variables>
+        <name>var_PreviousTier</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <!-- ============================================================
+         FORMULAS
+    ============================================================ -->
+
+    <!-- Remaining days = baseline - days already spent; estimated date = today + remaining (floor at today) -->
+    <formulas>
+        <name>formula_RemainingDays</name>
+        <dataType>Number</dataType>
+        <expression>MAX(0, {!var_BaselineDays} - {!$Record.nepa_days_in_current_stage__c})</expression>
+        <scale>0</scale>
+    </formulas>
+
+    <formulas>
+        <name>formula_EstimatedDate</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() + {!formula_RemainingDays}</expression>
+    </formulas>
+
+    <!-- ============================================================
+         TRIGGER: after-save async on IndividualApplication
+    ============================================================ -->
+
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <object>IndividualApplication</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+        <scheduledPaths>
+            <connector>
+                <targetReference>Assign_PreviousTier</targetReference>
+            </connector>
+            <pathType>AsyncAfterCommit</pathType>
+        </scheduledPaths>
+        <filterLogic>or</filterLogic>
+        <filters>
+            <field>nepa_process_stage__c</field>
+            <operator>IsChanged</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+        <filters>
+            <field>nepa_process_status__c</field>
+            <operator>IsChanged</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+        <filters>
+            <field>nepa_last_stage_transition__c</field>
+            <operator>IsChanged</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+    </start>
+
+    <!-- ============================================================
+         STEP 1: Capture previous tier for change detection
+    ============================================================ -->
+
+    <assignments>
+        <name>Assign_PreviousTier</name>
+        <label>Capture Previous Tier</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_PreviousTier</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>$Record.nepa_timeline_risk_tier__c</elementReference></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Decision_ReviewTypeBaseline</targetReference>
+        </connector>
+    </assignments>
+
+    <!-- ============================================================
+         STEP 2: Set baseline days by review type
+         CE: 30d total → At Risk 33d (110%), Stalled 38d (125%), Overdue 45d (150%)
+         EA: 180d total → At Risk 198d, Stalled 225d, Overdue 270d
+         EIS: 730d total → At Risk 803d, Stalled 913d, Overdue 1095d
+    ============================================================ -->
+
+    <decisions>
+        <name>Decision_ReviewTypeBaseline</name>
+        <label>Review Type for Baseline?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>EA Default</defaultConnectorLabel>
+        <defaultConnector>
+            <targetReference>Decision_RiskTier</targetReference>
+        </defaultConnector>
+        <rules>
+            <name>Baseline_CE</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_review_type__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><stringValue>CE</stringValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Baseline_CE</targetReference>
+            </connector>
+            <label>CE</label>
+        </rules>
+        <rules>
+            <name>Baseline_EIS</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_review_type__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><stringValue>EIS</stringValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Baseline_EIS</targetReference>
+            </connector>
+            <label>EIS</label>
+        </rules>
+    </decisions>
+
+    <assignments>
+        <name>Assign_Baseline_CE</name>
+        <label>CE Baselines</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_BaselineDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>30.0</numberValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>var_AtRiskDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>33.0</numberValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>var_StalledDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>38.0</numberValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>var_OverdueDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>45.0</numberValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Decision_RiskTier</targetReference>
+        </connector>
+    </assignments>
+
+    <assignments>
+        <name>Assign_Baseline_EIS</name>
+        <label>EIS Baselines</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_BaselineDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>730.0</numberValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>var_AtRiskDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>803.0</numberValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>var_StalledDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>913.0</numberValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>var_OverdueDays</assignToReference>
+            <operator>Assign</operator>
+            <value><numberValue>1095.0</numberValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Decision_RiskTier</targetReference>
+        </connector>
+    </assignments>
+
+    <!-- ============================================================
+         STEP 3: Classify risk tier using days-in-current-stage
+    ============================================================ -->
+
+    <decisions>
+        <name>Decision_RiskTier</name>
+        <label>Classify Risk Tier</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>On Track</defaultConnectorLabel>
+        <defaultConnector>
+            <targetReference>Assign_Tier_OnTrack</targetReference>
+        </defaultConnector>
+        <rules>
+            <name>Tier_Overdue</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_days_in_current_stage__c</leftValueReference>
+                <operator>GreaterThanOrEqualTo</operator>
+                <rightValue><elementReference>var_OverdueDays</elementReference></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Tier_Overdue</targetReference>
+            </connector>
+            <label>Overdue (150%+ of baseline)</label>
+        </rules>
+        <rules>
+            <name>Tier_Stalled</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_days_in_current_stage__c</leftValueReference>
+                <operator>GreaterThanOrEqualTo</operator>
+                <rightValue><elementReference>var_StalledDays</elementReference></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Tier_Stalled</targetReference>
+            </connector>
+            <label>Stalled (125–149% of baseline)</label>
+        </rules>
+        <rules>
+            <name>Tier_AtRisk</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.nepa_days_in_current_stage__c</leftValueReference>
+                <operator>GreaterThanOrEqualTo</operator>
+                <rightValue><elementReference>var_AtRiskDays</elementReference></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Tier_AtRisk</targetReference>
+            </connector>
+            <label>At Risk (110–124% of baseline)</label>
+        </rules>
+    </decisions>
+
+    <assignments>
+        <name>Assign_Tier_OnTrack</name>
+        <label>Set On Track</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_RiskTier</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>On Track</stringValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_IndividualApplication</targetReference>
+        </connector>
+    </assignments>
+
+    <assignments>
+        <name>Assign_Tier_AtRisk</name>
+        <label>Set At Risk</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_RiskTier</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>At Risk</stringValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_IndividualApplication</targetReference>
+        </connector>
+    </assignments>
+
+    <assignments>
+        <name>Assign_Tier_Stalled</name>
+        <label>Set Stalled</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_RiskTier</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>Stalled</stringValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_IndividualApplication</targetReference>
+        </connector>
+    </assignments>
+
+    <assignments>
+        <name>Assign_Tier_Overdue</name>
+        <label>Set Overdue</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>var_RiskTier</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>Overdue</stringValue></value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_IndividualApplication</targetReference>
+        </connector>
+    </assignments>
+
+    <!-- ============================================================
+         STEP 4: Write risk tier and estimated date back to the record
+    ============================================================ -->
+
+    <recordUpdates>
+        <name>Update_IndividualApplication</name>
+        <label>Update Timeline Risk Fields</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </filters>
+        <inputAssignments>
+            <field>nepa_timeline_risk_tier__c</field>
+            <value><elementReference>var_RiskTier</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>nepa_estimated_completion_date__c</field>
+            <value><elementReference>formula_EstimatedDate</elementReference></value>
+        </inputAssignments>
+        <object>IndividualApplication</object>
+        <connector>
+            <targetReference>Decision_EscalationNeeded</targetReference>
+        </connector>
+    </recordUpdates>
+
+    <!-- ============================================================
+         STEP 5: Escalate only if tier worsened to At Risk or beyond
+         and the previous tier was On Track (avoid repeated escalation)
+    ============================================================ -->
+
+    <decisions>
+        <name>Decision_EscalationNeeded</name>
+        <label>Escalation Needed?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>No Escalation</defaultConnectorLabel>
+        <rules>
+            <name>Escalate_Transition</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>var_PreviousTier</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><stringValue>On Track</stringValue></rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>var_RiskTier</leftValueReference>
+                <operator>NotEqualTo</operator>
+                <rightValue><stringValue>On Track</stringValue></rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Create_ProcessPausedEvent</targetReference>
+            </connector>
+            <label>Tier Worsened From On Track</label>
+        </rules>
+    </decisions>
+
+    <!-- ============================================================
+         STEP 6a: Create ApplicationTimeline Process Paused event
+    ============================================================ -->
+
+    <recordCreates>
+        <name>Create_ProcessPausedEvent</name>
+        <label>Create Process Paused Timeline Event</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>IndividualApplicationId</field>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>nepa_event_type__c</field>
+            <value><stringValue>Process Paused</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>nepa_status__c</field>
+            <value><stringValue>In Progress</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>nepa_event_description__c</field>
+            <value><elementReference>var_RiskTier</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>nepa_source__c</field>
+            <value><stringValue>Timeline Risk Assessor</stringValue></value>
+        </inputAssignments>
+        <object>ApplicationTimeline</object>
+        <connector>
+            <targetReference>Create_EscalationTask</targetReference>
+        </connector>
+    </recordCreates>
+
+    <!-- ============================================================
+         STEP 6b: Create coordinator escalation Task
+    ============================================================ -->
+
+    <recordCreates>
+        <name>Create_EscalationTask</name>
+        <label>Create Timeline Risk Escalation Task</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value><stringValue>Timeline Risk Alert — Review Process Status</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Description</field>
+            <value><elementReference>var_RiskTier</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Priority</field>
+            <value><stringValue>High</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>ActivityDate</field>
+            <value><elementReference>formula_EscalationDueDate</elementReference></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status</field>
+            <value><stringValue>Not Started</stringValue></value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value><elementReference>$Record.OwnerId</elementReference></value>
+        </inputAssignments>
+        <object>Task</object>
+    </recordCreates>
+
+    <!-- ============================================================
+         FORMULAS (continued)
+    ============================================================ -->
+
+    <formulas>
+        <name>formula_EscalationDueDate</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() + 5</expression>
+    </formulas>
+
+</Flow>

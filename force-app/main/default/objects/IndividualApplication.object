@@ -372,6 +372,75 @@
         <trackHistory>false</trackHistory>
         <type>Date</type>
     </fields>
+    <!-- Priority 4: Timeline Risk fields -->
+    <fields>
+        <fullName>nepa_timeline_risk_tier__c</fullName>
+        <description>Current timeline risk tier derived from days in current stage vs. review-type baseline. On Track: within expected range; At Risk: 10-25% over baseline; Stalled: 25-50% over baseline; Overdue: 50%+ over baseline. Written by NEPA_Timeline_Risk_Assessor Flow.</description>
+        <inlineHelpText>Timeline risk classification for this process. Updated automatically by Flow when stage or status changes.</inlineHelpText>
+        <externalId>false</externalId>
+        <label>Timeline Risk Tier</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Picklist</type>
+        <valueSet>
+            <restricted>true</restricted>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value>
+                    <fullName>On Track</fullName>
+                    <default>false</default>
+                    <label>On Track</label>
+                </value>
+                <value>
+                    <fullName>At Risk</fullName>
+                    <default>false</default>
+                    <label>At Risk</label>
+                </value>
+                <value>
+                    <fullName>Stalled</fullName>
+                    <default>false</default>
+                    <label>Stalled</label>
+                </value>
+                <value>
+                    <fullName>Overdue</fullName>
+                    <default>false</default>
+                    <label>Overdue</label>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    <fields>
+        <fullName>nepa_estimated_completion_date__c</fullName>
+        <description>Projected completion date based on current process stage, days-in-stage, and review-type baseline. Calculated by NEPA_Timeline_Risk_Assessor Flow. Updated whenever stage or risk tier changes.</description>
+        <inlineHelpText>Projected completion date based on current pace and review type baseline. Updated automatically.</inlineHelpText>
+        <label>Estimated Completion Date</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>nepa_days_in_current_stage__c</fullName>
+        <description>Formula field: number of calendar days elapsed since nepa_last_stage_transition__c (or nepa_start_date__c if no transition recorded). Used by NEPA_Timeline_Risk_Assessor to determine risk tier.</description>
+        <inlineHelpText>Days elapsed in the current process stage. Recalculates daily.</inlineHelpText>
+        <externalId>false</externalId>
+        <formula>IF(
+  NOT(ISBLANK(nepa_last_stage_transition__c)),
+  TODAY() - DATEVALUE(nepa_last_stage_transition__c),
+  IF(
+    NOT(ISBLANK(nepa_start_date__c)),
+    TODAY() - nepa_start_date__c,
+    0
+  )
+)</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Days in Current Stage</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <trackHistory>false</trackHistory>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
     <!-- Priority 9: Administrative Record Completeness fields -->
     <fields>
         <fullName>nepa_record_completeness__c</fullName>

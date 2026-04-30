@@ -37,6 +37,10 @@
         <!-- Priority 6: Workflow Orchestration fields -->
         <members>IndividualApplication.nepa_last_stage_transition__c</members>
         <members>IndividualApplication.nepa_target_completion_date__c</members>
+        <!-- Priority 4: Timeline Risk fields -->
+        <members>IndividualApplication.nepa_timeline_risk_tier__c</members>
+        <members>IndividualApplication.nepa_estimated_completion_date__c</members>
+        <members>IndividualApplication.nepa_days_in_current_stage__c</members>
         <!-- Priority 9: Administrative Record Completeness fields -->
         <members>IndividualApplication.nepa_record_completeness__c</members>
         <members>IndividualApplication.nepa_missing_documents__c</members>
@@ -252,6 +256,8 @@
         <!-- Priority 2: CE Screening + Routing Flows -->
         <members>NEPA_CE_Screener</members>
         <members>NEPA_CE_Determination_Router</members>
+        <!-- Priority 4: Timeline Risk Assessment -->
+        <members>NEPA_Timeline_Risk_Assessor</members>
         <!-- Priority 6: Workflow Orchestration -->
         <members>NEPA_Stage_Gate</members>
         <!-- Priority 9: Administrative Record Completeness -->
